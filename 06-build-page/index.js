@@ -36,7 +36,7 @@ await fsPromises.mkdir(path.join(__dirname, `project-dist`), {
              copyDir(_dir + '/' + items[i].name)
           } else if (items[i].isFile()){
             console.log(`file detected ${items[i].name}`)
-            fs.copyFile(_dir + '/' + items[i].name, `${_dir.split('06-build-page')[0]}` + `06-build-page\\project-dist` + path.resolve(`${_dir.split('06-build-page')[1]}`).substring(2) +  `\\${items[i].name}`, ()=> {console.log(`${items[i].name} --- ${_dir + '/' + items[i].name} --- ${_dir.split('06-build-page')[0]}` + `06-build-page\\project-dist` + `${_dir.split('06-build-page')[1]}` +  `\\${items[i].name}`)})
+            fs.copyFile(_dir + '/' + items[i].name, `${_dir.split('06-build-page')[0]}` + `06-build-page\\project-dist` + path.resolve(`${_dir.split('06-build-page')[1]}`).substring(2) +  `\\${items[i].name}`, ()=> {console.log(`${items[i].name} --- ${_dir + '/' + items[i].name} --- ${_dir.split('06-build-page')[0]}` + `06-build-page\\project-dist` + path.resolve(`${_dir.split('06-build-page')[1]}`).substring(2) +  `\\${items[i].name}`)})
           }
         }
      })
@@ -61,18 +61,53 @@ async function bundleFiles() {
     }
     console.log(bundle.length)
 
-    fs.writeFile(path.join(__dirname,'project-dist','bundle.css'), bundle.join(''), function( err){
+    fs.writeFile(path.join(__dirname,'project-dist','style.css'), bundle.join(''), function( err){
     if (err) console.log(err)
-    console.log(`file bundle.css created on path ${path.join(__dirname,'project-dist','bundle.css')}`)
+    console.log(`file style.css created on path ${path.join(__dirname,'project-dist','style.css')}`)
     } )
 }
 
 
+async function composeIndex() {
+  let template = await fsPromises.readFile(
+    path.join(__dirname, "template.html"),
+    "utf-8",
+    (err, data) => {
+      if (err) throw err;
+      return data;
+    }
+  );
+  console.log(template);
 
+  const files = await fsPromises.readdir(path.join(__dirname, "components"), {
+    withFileTypes: true,
+  });
+  for (file of files) {
+    if (file.isFile() && path.parse(file.name).ext === ".html") {
 
+      if (template.includes(`{{${(file.name).split('.')[0]}}}`)){
+          let component = await fsPromises.readFile(
+            path.join(__dirname, "components", file.name),
+            "utf-8",
+            (err, data) => {
+              if (err) throw err;
+              return data;
+            }
+          );
+          
+          template = template.replace(`{{${(file.name).split('.')[0]}}}`, component )
+      }
+    }
+  }
+  fs.writeFile(path.join(__dirname,'project-dist','index.html'), template, function( err){
+    if (err) console.log(err)
+    console.log(`file index.html created on path ${path.join(__dirname,'project-dist','index.html')}`)
+    } )
+}
 
 createDist ()
 copyDir(path.join(__dirname, "assets"))
 bundleFiles()
+composeIndex()
 
   
