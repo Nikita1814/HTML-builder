@@ -9,14 +9,14 @@ async function showFiles() {
   );
   for (file of files) {
     if (file.isFile()) {
+      let nom = file.name
       async function stats() {
         res = await fsPromises.stat(
-          path.join(__dirname, "secret-folder", file.name)
+          path.join(__dirname, "secret-folder", nom)
         );
-
         console.log(
-          `${path.parse(file.name).name} - ${path
-            .parse(file.name)
+          `${path.parse(nom).name} - ${path
+            .parse(nom)
             .ext.substr(1)} - ${res.size / 1000}kb`
         );
       }
