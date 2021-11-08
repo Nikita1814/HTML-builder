@@ -7,16 +7,17 @@ async function createDist() {
   await fsPromises.mkdir(path.join(__dirname, `project-dist`), {
     recursive: true,
   });
-  await fsPromises.mkdir(path.join(__dirname, `project-dist`, 'assets'), {
-    recursive: true,
-  });
+
   console.log("DIST created");
 }
 
-/*async function createAssets() {
 
+async function createAssets() {
+  await fsPromises.mkdir(path.join(__dirname, `project-dist`, 'assets'), {
+    recursive: true,
+  });
   console.log("Assets created");
-}*/
+}
 //copying assets and creating dist
 /*async function copyDir(sourcePath , destinationPath) {
     const subfolders = await fsPromises.readdir(path.join(__dirname, "assets"));
@@ -69,6 +70,7 @@ async function copyDir(_dir) {
   });
 }
 
+
 async function bundleFiles() {
   const files = await fsPromises.readdir(path.join(__dirname, "styles"), {
     withFileTypes: true,
@@ -117,28 +119,28 @@ async function composeIndex() {
   );
   /*console.log(template);*/
 
-  const files = await fsPromises.readdir(path.join(__dirname, "components"), {
+  const parts = await fsPromises.readdir(path.join(__dirname, "components"), {
     withFileTypes: true,
   });
-  for (file of files) {
-    if (file.isFile() && path.parse(file.name).ext === ".html") {
-      if (template.includes(`{{${file.name.split(".")[0]}}}`)) {
+  for (part of parts) {
+    if (part.isFile() && path.parse(part.name).ext === ".html") {
+      if (template.includes(`{{${part.name.split(".")[0]}}}`)) {
      
         let component = await fsPromises.readFile(
-          path.join(__dirname, "components", file.name),
+          path.join(__dirname, "components", part.name),
           "utf-8",
           (err, data) => {
             if (err) throw err;
             return data;
           }
         );
-        console.log(file.name)
-        console.log(`{{${file.name.split(".")[0]}}}`)
+        console.log(part.name)
+        console.log(`{{${part.name.split(".")[0]}}}`)
         console.log(component)
         
       
         template = template.replace(
-          `{{${file.name.split(".")[0]}}}`,
+          `{{${part.name.split(".")[0]}}}`,
           component
         );
       }
@@ -161,6 +163,8 @@ async function composeIndex() {
 }
 
 createDist ()
-.then(copyDir(path.join(__dirname, "assets")))
-.then(bundleFiles())
-.then(composeIndex())
+createAssets()
+composeIndex()
+copyDir(path.join(__dirname, "assets"))
+bundleFiles()
+
